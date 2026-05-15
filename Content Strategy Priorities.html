@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Content Command Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0D0D0F;
+  --surface: #18181B;
+  --surface-2: #1F1F23;
+  --surface-3: #27272A;
+  --border: #2E2E33;
+  --border-hover: #3F3F46;
+  --text: #FAFAFA;
+  --text-2: #A1A1AA;
+  --text-3: #71717A;
+  --coral: #F0714A;
+  --coral-dim: rgba(240,113,74,0.15);
+  --gold: #E8B931;
+  --gold-dim: rgba(232,185,49,0.15);
+  --teal: #2DD4BF;
+  --teal-dim: rgba(45,212,191,0.15);
+  --purple: #A78BFA;
+  --purple-dim: rgba(167,139,250,0.15);
+  --blue: #60A5FA;
+  --blue-dim: rgba(96,165,250,0.15);
+  --green: #4ADE80;
+  --green-dim: rgba(74,222,128,0.15);
+  --red: #F87171;
+  --red-dim: rgba(248,113,113,0.15);
+  --pink: #F472B6;
+  --pink-dim: rgba(244,114,182,0.15);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height:100vh; }
+
+/* HEADER */
+.header { padding: 20px 32px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100; background: rgba(13,13,15,0.92); backdrop-filter: blur(20px); }
+.header h1 { font-family:'Space Grotesk',sans-serif; font-size:20px; font-weight:700; letter-spacing:-0.5px; }
+.header h1 span { color: var(--coral); }
+.header-actions { display:flex; gap:8px; }
+.btn { padding:8px 16px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:13px; font-family:'DM Sans',sans-serif; cursor:pointer; transition:all .2s; display:flex; align-items:center; gap:6px; }
+.btn:hover { border-color: var(--coral); background: var(--coral-dim); }
+.btn-primary { background: var(--coral); border-color: var(--coral); color:#fff; font-weight:600; }
+.btn-primary:hover { background: #e0603a; }
+
+/* NAV TABS */
+.nav { display:flex; gap:4px; padding:12px 32px; border-bottom:1px solid var(--border); background:var(--bg); overflow-x:auto; }
+.nav-tab { padding:10px 20px; border-radius:8px; background:transparent; border:none; color:var(--text-3); font-size:14px; font-family:'DM Sans',sans-serif; cursor:pointer; transition:all .2s; white-space:nowrap; font-weight:500; }
+.nav-tab:hover { color:var(--text-2); background:var(--surface); }
+.nav-tab.active { color:var(--text); background:var(--surface-2); border:1px solid var(--border); }
+
+/* MAIN */
+.main { padding:24px 32px; max-width:1400px; margin:0 auto; }
+.tab-content { display:none; }
+.tab-content.active { display:block; }
+
+/* ===== DASHBOARD ===== */
+.stats-row { display:grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap:12px; margin-bottom:24px; }
+.stat-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px 20px; }
+.stat-label { font-size:12px; color:var(--text-3); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
+.stat-value { font-family:'Space Grotesk',sans-serif; font-size:28px; font-weight:700; }
+.stat-value.coral { color:var(--coral); }
+.stat-value.teal { color:var(--teal); }
+.stat-value.gold { color:var(--gold); }
+.stat-value.purple { color:var(--purple); }
+.stat-value.green { color:var(--green); }
+
+/* ===== ALL REEL IDEAS (CONTENT LIBRARY) ===== */
+.filters { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; align-items:center; }
+.filter-chip { padding:6px 14px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--text-3); font-size:12px; cursor:pointer; transition:all .2s; font-family:'DM Sans',sans-serif; }
+.filter-chip:hover, .filter-chip.active { border-color: var(--coral); color: var(--coral); background: var(--coral-dim); }
+.search-input { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:8px 14px; color:var(--text); font-size:13px; font-family:'DM Sans',sans-serif; width:240px; outline:none; }
+.search-input:focus { border-color: var(--coral); }
+.search-input::placeholder { color:var(--text-3); }
+
+.reel-grid { display:grid; gap:12px; }
+.reel-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px 20px; transition:all .2s; cursor:pointer; position:relative; }
+.reel-card:hover { border-color: var(--border-hover); transform:translateY(-1px); }
+.reel-card.expanded .reel-details { display:block; }
+.reel-hook { font-size:14px; font-style:italic; color:var(--text); margin-bottom:8px; line-height:1.5; border-left:3px solid var(--coral); padding-left:12px; }
+.reel-title { font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:600; margin-bottom:6px; }
+.reel-meta { display:flex; gap:8px; flex-wrap:wrap; }
+.reel-tag { padding:3px 10px; border-radius:12px; font-size:11px; font-weight:500; }
+.tag-phase { background:var(--purple-dim); color:var(--purple); }
+.tag-pillar { background:var(--teal-dim); color:var(--teal); }
+.tag-length { background:var(--surface-3); color:var(--text-3); }
+.tag-status { padding:3px 10px; border-radius:12px; font-size:11px; font-weight:600; }
+.status-idea { background:var(--surface-3); color:var(--text-3); }
+.status-filmed { background:var(--gold-dim); color:var(--gold); }
+.status-edited { background:var(--blue-dim); color:var(--blue); }
+.status-posted { background:var(--green-dim); color:var(--green); }
+.status-reshoot { background:var(--red-dim); color:var(--red); }
+
+.reel-details { display:none; margin-top:14px; padding-top:14px; border-top:1px solid var(--border); }
+.detail-section { margin-bottom:12px; }
+.detail-label { font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--coral); margin-bottom:4px; font-weight:600; }
+.detail-text { font-size:13px; color:var(--text-2); line-height:1.6; }
+.detail-list { list-style:none; padding:0; }
+.detail-list li { font-size:13px; color:var(--text-2); padding:2px 0; padding-left:16px; position:relative; line-height:1.5; }
+.detail-list li::before { content:'•'; position:absolute; left:0; color:var(--coral); }
+
+.reel-actions { display:flex; gap:6px; margin-top:12px; }
+.reel-actions .btn { font-size:11px; padding:5px 12px; }
+
+/* ===== VIDEO LOG ===== */
+.log-table-wrap { overflow-x:auto; border:1px solid var(--border); border-radius:12px; }
+table { width:100%; border-collapse:collapse; }
+th { background:var(--surface-2); padding:10px 14px; text-align:left; font-size:12px; text-transform:uppercase; letter-spacing:1px; color:var(--text-3); font-weight:600; border-bottom:1px solid var(--border); white-space:nowrap; }
+td { padding:10px 14px; font-size:13px; border-bottom:1px solid var(--border); color:var(--text-2); vertical-align:top; }
+tr:hover td { background: var(--surface); }
+td select, td input { background:var(--surface-2); border:1px solid var(--border); border-radius:6px; padding:4px 8px; color:var(--text); font-size:12px; font-family:'DM Sans',sans-serif; }
+td select:focus, td input:focus { outline:none; border-color:var(--coral); }
+td textarea { background:var(--surface-2); border:1px solid var(--border); border-radius:6px; padding:4px 8px; color:var(--text); font-size:12px; font-family:'DM Sans',sans-serif; width:100%; min-height:40px; resize:vertical; }
+
+/* ===== CALENDAR ===== */
+.cal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.cal-header h2 { font-family:'Space Grotesk',sans-serif; font-size:22px; font-weight:700; }
+.cal-nav { display:flex; gap:8px; }
+.cal-grid { display:grid; grid-template-columns: repeat(7,1fr); gap:4px; }
+.cal-day-label { text-align:center; font-size:11px; color:var(--text-3); text-transform:uppercase; letter-spacing:1px; padding:8px 0; }
+.cal-cell { min-height:100px; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:8px; cursor:pointer; transition:all .2s; position:relative; }
+.cal-cell:hover { border-color: var(--border-hover); }
+.cal-cell.today { border-color: var(--coral); box-shadow: 0 0 0 1px var(--coral); }
+.cal-cell.other-month { opacity:0.3; }
+.cal-date { font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:600; margin-bottom:4px; }
+.cal-event { font-size:10px; padding:2px 6px; border-radius:4px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; }
+.cal-event.shoot { background:var(--gold-dim); color:var(--gold); }
+.cal-event.upload { background:var(--green-dim); color:var(--green); }
+.cal-event.edit { background:var(--blue-dim); color:var(--blue); }
+.cal-event.todo { background:var(--purple-dim); color:var(--purple); }
+.cal-add { font-size:10px; color:var(--text-3); padding:2px 0; cursor:pointer; opacity:0; transition:all .2s; }
+.cal-cell:hover .cal-add { opacity:1; }
+
+/* ===== IDEA BANK ===== */
+.idea-input-row { display:flex; gap:8px; margin-bottom:16px; }
+.idea-input { flex:1; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px 14px; color:var(--text); font-size:14px; font-family:'DM Sans',sans-serif; outline:none; }
+.idea-input:focus { border-color: var(--coral); }
+.idea-select { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px 14px; color:var(--text); font-size:13px; font-family:'DM Sans',sans-serif; }
+.idea-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 18px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; transition:all .2s; }
+.idea-card:hover { border-color: var(--border-hover); }
+.idea-text { font-size:14px; line-height:1.5; flex:1; }
+.idea-actions { display:flex; gap:4px; flex-shrink:0; }
+.idea-pill { font-size:10px; padding:2px 8px; border-radius:10px; margin-top:4px; display:inline-block; }
+.idea-delete { background:none; border:none; color:var(--text-3); cursor:pointer; font-size:16px; padding:2px 6px; border-radius:4px; }
+.idea-delete:hover { color:var(--red); background:var(--red-dim); }
+.idea-promote { background:none; border:none; color:var(--text-3); cursor:pointer; font-size:12px; padding:4px 8px; border-radius:4px; }
+.idea-promote:hover { color:var(--green); background:var(--green-dim); }
+
+/* MODAL */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:200; justify-content:center; align-items:center; padding:20px; }
+.modal-overlay.open { display:flex; }
+.modal { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px; width:100%; max-width:500px; max-height:80vh; overflow-y:auto; }
+.modal h3 { font-family:'Space Grotesk',sans-serif; font-size:18px; margin-bottom:16px; }
+.modal label { display:block; font-size:12px; color:var(--text-3); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; margin-top:12px; }
+.modal input, .modal select, .modal textarea { width:100%; background:var(--surface-2); border:1px solid var(--border); border-radius:8px; padding:8px 12px; color:var(--text); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; }
+.modal textarea { min-height:60px; resize:vertical; }
+.modal input:focus, .modal select:focus, .modal textarea:focus { border-color:var(--coral); }
+.modal-actions { display:flex; gap:8px; margin-top:20px; justify-content:flex-end; }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width:6px; height:6px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+::-webkit-scrollbar-thumb:hover { background:var(--border-hover); }
+
+@media (max-width: 768px) {
+  .main { padding:16px; }
+  .header { padding:14px 16px; }
+  .nav { padding:10px 16px; }
+  .stats-row { grid-template-columns: repeat(2,1fr); }
+  .cal-cell { min-height:60px; }
+  .cal-event { font-size:8px; }
+  .filters { flex-direction:column; }
+  .search-input { width:100%; }
+  .idea-input-row { flex-direction:column; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1><span>●</span> Content Command Center</h1>
+  <div class="header-actions">
+    <button class="btn" onclick="exportData()">↓ Export Data</button>
+    <button class="btn" onclick="importDataPrompt()">↑ Import Data</button>
+  </div>
+</div>
+
+<div class="nav" id="nav">
+  <button class="nav-tab active" data-tab="dashboard">Dashboard</button>
+  <button class="nav-tab" data-tab="library">All Reel Ideas</button>
+  <button class="nav-tab" data-tab="videolog">Video Log</button>
+  <button class="nav-tab" data-tab="calendar">Calendar</button>
+  <button class="nav-tab" data-tab="ideabank">Idea Bank</button>
+</div>
+
+<div class="main">
+
+  <!-- DASHBOARD -->
+  <div class="tab-content active" id="tab-dashboard">
+    <div class="stats-row" id="statsRow"></div>
+    <h3 style="font-family:'Space Grotesk'; margin:24px 0 12px; font-size:16px; color:var(--text-2);">Upcoming (Next 7 Days)</h3>
+    <div id="upcomingEvents"></div>
+    <h3 style="font-family:'Space Grotesk'; margin:24px 0 12px; font-size:16px; color:var(--text-2);">Recent Activity</h3>
+    <div id="recentActivity"></div>
+  </div>
+
+  <!-- CONTENT LIBRARY -->
+  <div class="tab-content" id="tab-library">
+    <div class="filters">
+      <input type="text" class="search-input" id="reelSearch" placeholder="Search reels..." oninput="renderLibrary()">
+      <div id="filterChips"></div>
+    </div>
+    <div class="reel-grid" id="reelGrid"></div>
+  </div>
+
+  <!-- VIDEO LOG -->
+  <div class="tab-content" id="tab-videolog">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h2 style="font-family:'Space Grotesk';font-size:20px;">Footage Tracker</h2>
+      <button class="btn btn-primary" onclick="addLogEntry()">+ Add Footage</button>
+    </div>
+    <div class="log-table-wrap">
+      <table id="logTable">
+        <thead><tr>
+          <th>Date</th>
+          <th>Description</th>
+          <th>Type</th>
+          <th>Status</th>
+          <th>Linked Reel</th>
+          <th>Notes</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="logBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CALENDAR -->
+  <div class="tab-content" id="tab-calendar">
+    <div class="cal-header">
+      <div class="cal-nav">
+        <button class="btn" onclick="changeMonth(-1)">← Prev</button>
+        <button class="btn" onclick="changeMonth(1)">Next →</button>
+      </div>
+      <h2 id="calMonth"></h2>
+      <button class="btn btn-primary" onclick="openCalModal()">+ Add Event</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+
+  <!-- IDEA BANK -->
+  <div class="tab-content" id="tab-ideabank">
+    <div class="idea-input-row">
+      <input type="text" class="idea-input" id="newIdeaInput" placeholder="Drop a new reel idea here..." onkeypress="if(event.key==='Enter')addIdea()">
+      <select class="idea-select" id="newIdeaCategory">
+        <option value="NYC Life">NYC Life</option>
+        <option value="Independence">Independence</option>
+        <option value="Career">Career</option>
+        <option value="Food">Food</option>
+        <option value="Immigrant">Immigrant</option>
+        <option value="Growth">Growth</option>
+        <option value="Funny">Funny</option>
+        <option value="Other">Other</option>
+      </select>
+      <button class="btn btn-primary" onclick="addIdea()">+ Add</button>
+    </div>
+    <div id="ideaList"></div>
+  </div>
+
+</div>
+
+<!-- CALENDAR EVENT MODAL -->
+<div class="modal-overlay" id="calModal">
+  <div class="modal">
+    <h3>Add Calendar Event</h3>
+    <label>Date</label>
+    <input type="date" id="calEventDate">
+    <label>Title</label>
+    <input type="text" id="calEventTitle" placeholder="e.g. Film park reel">
+    <label>Type</label>
+    <select id="calEventType">
+      <option value="shoot">📹 Shoot</option>
+      <option value="edit">✂️ Edit</option>
+      <option value="upload">📤 Upload</option>
+      <option value="todo">📋 To-Do</option>
+    </select>
+    <label>Notes</label>
+    <textarea id="calEventNotes" placeholder="Optional notes..."></textarea>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeCalModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCalEvent()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOG ENTRY MODAL -->
+<div class="modal-overlay" id="logModal">
+  <div class="modal">
+    <h3>Add Footage Entry</h3>
+    <label>Date Filmed</label>
+    <input type="date" id="logDate">
+    <label>Description</label>
+    <input type="text" id="logDesc" placeholder="e.g. Walking shots Worcester sunset">
+    <label>Type</label>
+    <select id="logType">
+      <option value="B-roll">B-roll</option>
+      <option value="Voiceover">Voiceover</option>
+      <option value="Talking-to-cam">Talking to Camera</option>
+      <option value="Footage">Raw Footage</option>
+      <option value="Time-lapse">Time-lapse</option>
+      <option value="Audio">Audio Only</option>
+    </select>
+    <label>Status</label>
+    <select id="logStatus">
+      <option value="captured">📷 Captured</option>
+      <option value="reviewed">👀 Reviewed</option>
+      <option value="usable">✅ Usable</option>
+      <option value="reshoot">🔄 Needs Reshoot</option>
+    </select>
+    <label>Linked Reel (optional)</label>
+    <select id="logLinkedReel"><option value="">None</option></select>
+    <label>Notes</label>
+    <textarea id="logNotes" placeholder="Quality notes, lighting, what's good/bad..."></textarea>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeLogModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveLogEntry()">Save</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="importFile" style="display:none" accept=".json" onchange="importData(event)">
+
+<script>
+// ===== ALL REEL IDEAS FROM CHAT =====
+const ALL_REELS = [
+  // PHASE 1
+  { id:'r1', title:'The Intro (Day 1 Post)', hook:'"I took a loan of 75 lakhs, moved to a country where I knew nobody, got a Master\'s degree, and now I\'m moving to New York City with no plan. Come watch me figure it out."', phase:'Phase 1', pillar:'NYC Life', length:'20-25s', structure:['Hook (text+VO) over montage: walking, coffee, laptop, campus','Quick cuts of current life — mundane, real, aesthetic not staged','End: "I don\'t know what I\'m doing. But I\'m documenting it anyway."','No CTA. No "follow for more." Just end.'], value:[], landing:null, status:'idea' },
+  { id:'r2', title:'The Park Reel', hook:'"I\'ve lived in this city for almost two years and there\'s one thing I never did."', phase:'Phase 1', pillar:'Independence', length:'25-30s', structure:['Walking to the park, sitting down, opening a book','VO: kept saying "next week" for 2 years. Leaving in X days. So today I just went.','Slow shots: trees, clouds, pages, people, hands on book'], value:[], landing:'"Sometimes the smallest thing you\'ve been putting off is the thing that makes you feel the most alive."', status:'idea' },
+  { id:'r3', title:'The Countdown Begins', hook:'"I never wanted to live here. And now that I\'m leaving, I\'m realizing I never actually lived here."', phase:'Phase 1', pillar:'Reflections', length:'25-30s', structure:['Walking around Worcester — campus, streets, usual spots','VO about spending 2 years but never exploring','You were so focused on leaving you forgot to be present'], value:[], landing:'"I have [X] days left. I\'m going to actually be here this time."', status:'idea' },
+  { id:'r4', title:'Funny Confession (Multitasking)', hook:'"I am mass applying to jobs on my laptop while googling \'how to survive in NYC on zero income\' on my phone. Multitasking queen."', phase:'Phase 1', pillar:'Career', length:'15-20s', structure:['Quick cuts: laptop, phone, coffee getting cold, blank stare','VO: stream of consciousness — Master\'s ✓, dream city ✓, money ✗, plan ✗'], value:[], landing:'"But we move. Literally. To New York. In [X] days. With no backup plan."', status:'idea' },
+  { id:'r5', title:'25 Things Before 25 Launch', hook:'"I turn 25 in six months and I\'ve done approximately nothing with my twenties. Help."', phase:'Phase 1', pillar:'25 Before 25', length:'20-25s', structure:['Quick VO: turning 25 in January, want 25 new things','Funny examples: eat alone without pretending to be on a call','Ask: "Comment what I should add. Unhinged suggestions welcome."'], value:[], landing:null, status:'idea' },
+  { id:'r6', title:'Things I\'ll Miss About This City I Said I Hated', hook:'"I spent two years saying I hated this city. Now that I\'m leaving, I can\'t stop noticing beautiful things about it."', phase:'Phase 1', pillar:'Reflections', length:'25-30s', structure:['Walking montage, reflective VO','Small things: sun on your street at 5pm, coffee shop that knows your order, quiet library corner'], value:[], landing:'"Maybe I didn\'t hate the city. Maybe I hated who I was in it."', status:'idea' },
+  { id:'r7', title:'My Daily Routine in a City I\'m About to Leave', hook:'"Everything hits different when you know it\'s the last time."', phase:'Phase 1', pillar:'Independence', length:'25-30s', structure:['Day-in-the-life with awareness it\'s ending','Morning, coffee, gym, studying, walking — each beat has "last time" energy'], value:[], landing:'"I\'ve been doing this routine for months. In [X] days, none of it will exist anymore."', status:'idea' },
+  { id:'r8', title:'I Left India 3 Years Ago — What Nobody Tells You', hook:'"I left India almost 3 years ago. Here\'s what nobody prepared me for."', phase:'Phase 1', pillar:'Immigrant', length:'30-35s', structure:['Montage of life in America — mundane, quiet'], value:['Loneliness doesn\'t hit Day 1. It hits Day 45.','You\'ll miss food more than people at first. Then the people hit hard.','You become a different version of yourself — can\'t fully go back.'], landing:'"I\'m not the girl who left India. But I\'m grateful she was brave enough to get on that plane."', status:'idea' },
+  { id:'r9', title:'The American Dream Costs ₹75 Lakhs', hook:'"The American dream costs ₹75 lakhs and a lot of crying in grocery store parking lots."', phase:'Phase 1', pillar:'Immigrant', length:'20-25s', structure:['Quick cuts of real life — cooking, studying, staring at laptop, grocery shopping'], value:[], landing:'"But we\'re still here. Still dreaming. Still crying in parking lots. But dreaming."', status:'idea' },
+
+  // PHASE 2
+  { id:'r10', title:'Last Day in Worcester', hook:'"Last morning waking up in a city I spent two years trying to leave."', phase:'Phase 2', pillar:'NYC Life', length:'25-30s', structure:['Morning routine: waking up, empty room, last coffee, looking around','VO reflecting on what this place taught you','Walking out the door, one last look back'], value:[], landing:'"Worcester, I didn\'t love you. But you held me when I needed it."', status:'idea' },
+  { id:'r11', title:'The Actual Move', hook:'"Everything I own fits in [X] bags. That\'s either freedom or a crisis."', phase:'Phase 2', pillar:'NYC Life', length:'20-25s', structure:['Packing time-lapse, bags by door, empty apartment','Travel footage — highway, city changing outside window','First glimpse of NYC skyline','Just: "Here we go."'], value:[], landing:null, status:'idea' },
+  { id:'r12', title:'First Night in NYC', hook:'"Day 1 of being a girl alone in New York City with a suitcase and a dream I can\'t afford."', phase:'Phase 2', pillar:'NYC Life', length:'20-25s', structure:['Walking into apartment, dropping bags, looking around','Empty room, bare setup','Walking outside, streets at night, city sounds'], value:[], landing:'"It doesn\'t feel real yet. But I\'m here."', status:'idea' },
+  { id:'r13', title:'The Last [X] I Did in Worcester', hook:'"Last coffee in the only coffee shop that knew my order."', phase:'Phase 2', pillar:'Reflections', length:'15-20s', structure:['Series format: last coffee, last gym session, last campus walk','Each one is a standalone reel','Simple footage + short reflective VO'], value:[], landing:'"Some routines end. You build new ones."', status:'idea' },
+  { id:'r14', title:'Things I\'m Packing vs Things I\'m Leaving Behind', hook:'"Things I\'m taking to New York. And things I\'m leaving behind."', phase:'Phase 2', pillar:'Reflections', length:'25-30s', structure:['Start literal: clothes, books, laptop','Shift emotional: old version of myself, the comfort zone, fear of being alone','Visual: packing → walking away'], value:[], landing:'"The suitcase is light. But the things I\'m leaving behind were heavy."', status:'idea' },
+  { id:'r15', title:'Moving to NYC and I Know 0 People', hook:'"My support system in NYC: Google Maps, Uber Eats, and my own anxiety. That\'s the full list."', phase:'Phase 2', pillar:'NYC Life', length:'15-20s', structure:['Funny angle: list your "support system" with deadpan delivery','Quick cuts of packing, checking phone, maps'], value:[], landing:'"But building something from nothing is kind of my thing at this point."', status:'idea' },
+  { id:'r16', title:'International Student Moving Alone Across States', hook:'"The most American thing I\'ve done is move across states with no car, no help, and no idea what I\'m doing."', phase:'Phase 2', pillar:'Immigrant', length:'20-25s', structure:['Logistical chaos: no car, limited budget, furniture, utilities, subway','Absurdity of American systems as immigrant','Quick cuts googling things, looking confused, problem-solving'], value:[], landing:'"They should give us a second degree for surviving the logistics of being an international student."', status:'idea' },
+
+  // PHASE 3
+  { id:'r17', title:'Day 1 of Building a Life from Scratch in NYC', hook:'"Day 1 of pretending I know what I\'m doing in New York City."', phase:'Phase 3', pillar:'NYC Life', length:'25-30s', structure:['Apartment setup, first grocery run, first subway, first coffee shop','Start numbered series: Day 1, Day 2...','Mix chaos and beauty'], value:[], landing:'"Day 1 done. Only... all the other days to go."', status:'idea' },
+  { id:'r18', title:'Apartment Tour — Budget International Student', hook:'"Apartment tour but it\'s a 200 sq ft box and I\'ve never been happier."', phase:'Phase 3', pillar:'NYC Life', length:'25-30s', structure:['Show small space with self-deprecating commentary','"This is my kitchen, dining room, office, gym, and emotional breakdown corner."','Show improvised furniture, creativity, reality'], value:['Everything must serve two purposes (desk=dining table)','Vertical space is free real estate (hooks, shelves, organizers)','The less stuff you own, the less stuff owns you'], landing:'"It\'s small. But it\'s mine. And that\'s the biggest thing I\'ve had in a while."', status:'idea' },
+  { id:'r19', title:'First Time Navigating the Subway Alone', hook:'"Me vs the NYC subway system. The subway is winning."', phase:'Phase 3', pillar:'NYC Life', length:'20-25s', structure:['Confusion, wrong trains, Google Maps dependence','Quick cuts: looking at signs, checking phone, wrong direction','Funny commentary over struggle footage'], value:[], landing:'"I ended up 40 blocks in the wrong direction. But I figured it out. Eventually."', status:'idea' },
+  { id:'r20', title:'Coffee Shop Alone for 2 Hours', hook:'"Six months ago I couldn\'t sit in a coffee shop alone without my phone. Today I did it in a city where nobody knows my name."', phase:'Phase 3', pillar:'Independence', length:'25-30s', structure:['Callback to independence pillar','Coffee shop: walking in, ordering, sitting, watching, reading','VO about how this used to terrify you'], value:[], landing:'"The silence used to scare me. Now it\'s my favorite sound."', status:'idea' },
+  { id:'r21', title:'Things That Hit Different Alone in a New City', hook:'"Things that hit different when you\'re completely alone in a new city."', phase:'Phase 3', pillar:'Independence', length:'25-30s', structure:['Silence of apartment at night','Cooking for one','Hearing neighbors through walls','First time nobody here knows your name','Walking through crowd and being invisible'], value:[], landing:'"It\'s lonely. And it\'s free. And somehow it\'s both at the same time."', status:'idea' },
+  { id:'r22', title:'Finding a Gym in NYC on a Budget', hook:'"Trying to find a gym in NYC that doesn\'t cost more than my rent."', phase:'Phase 3', pillar:'Career', length:'20-25s', structure:['Sticker shock, sales pitches, tiny basement gyms','Walking past gyms, checking prices, reacting'], value:['Blink & Planet Fitness are budget-friendly','Ask about first-month-free deals','Parks and free outdoor spaces are underrated'], landing:'"Found one. Underground. Low ceiling. But low price. We take those."', status:'idea' },
+
+  // PHASE 4
+  { id:'r23', title:'25 Before 25 (Ongoing Series)', hook:'"Thing #[X] before I turn 25: [challenge]."', phase:'Phase 4', pillar:'25 Before 25', length:'20-30s', structure:['One reel per challenge, content through January','Film each, share reaction, check it off'], value:[], landing:null, status:'idea' },
+  { id:'r24', title:'Day [X] of Building Dream Life in NYC', hook:'"Day [X] of building my dream life in New York City."', phase:'Phase 4', pillar:'NYC Life', length:'20-25s', structure:['Not daily — use when notable things happen','Day 3, Day 12, Day 27 — gaps make it feel real'], value:[], landing:null, status:'idea' },
+  { id:'r25', title:'Job Search Diaries (Weekly)', hook:'"Week [X] update: 47 applications. 2 callbacks. 1 ghosting. 0 surprises."', phase:'Phase 4', pillar:'Career', length:'25-30s', structure:['Weekly format: apps, interviews, rejections, wins','Casual and honest, show laptop and spreadsheet'], value:['One targeted app > ten spray-and-pray','Comment on hiring managers\' LinkedIn posts','The job comes from a human, not a job board','Track everything: company, date, status, follow-up'], landing:'"Consistent and strategic beats talented and random. Every single time."', status:'idea' },
+  { id:'r26', title:'NYC on a Budget', hook:'"Things to do in NYC when your bank account says no but your soul says please."', phase:'Phase 4', pillar:'NYC Life', length:'20-25s', structure:['Free/cheap things, places, hacks for living cheap','Each reel = one tip or discovery'], value:[], landing:null, status:'idea' },
+  { id:'r27', title:'Things Nobody Tells You About Living Alone', hook:'"Things nobody tells you about living completely alone."', phase:'Phase 4', pillar:'Independence', length:'20-25s', structure:['Cereal for dinner at midnight, no judgment','Loneliness at 2am when YOU have to check the noise','Pride of fixing something yourself','Talking to yourself constantly'], value:[], landing:null, status:'idea' },
+  { id:'r28', title:'Study With Me / Grind With Me', hook:'"Everyone shows aesthetic study sessions. Nobody shows staring at the same LeetCode problem for 45 min wanting to throw your laptop out the window."', phase:'Phase 4', pillar:'Career', length:'25-30s', structure:['FAANG prep, cybersecurity study, coding','Aesthetic but real — no toxic hustle','Show frustration AND progress'], value:['90-min blocks > pomodoro for deep work','Study the job description — reverse engineer your prep','Build projects, not just knowledge','One hour focused > four hours distracted'], landing:'"This isn\'t the glamorous part. But the glamorous part doesn\'t happen without this."', status:'idea' },
+  { id:'r29', title:'Cozy Day in My Life', hook:'"Come spend a quiet Tuesday with me in New York City."', phase:'Phase 4', pillar:'NYC Life', length:'25-30s', structure:['Morning routine, coffee, reading, cooking, walking','Low effort, high engagement','Comfort food of your feed'], value:[], landing:null, status:'idea' },
+
+  // STORYTELLING + VALUE REELS
+  { id:'r30', title:'Smallest Apartment in NYC (Value)', hook:'"I\'m moving into the smallest apartment in New York City. And honestly? I\'m excited about it."', phase:'Storytelling', pillar:'NYC Life', length:'30-35s', structure:['Walk through tiny space — show reality','VO shift: "I never had a space that was just mine. This 200 sq ft box is the first."'], value:['Everything serves two purposes','Vertical space is free real estate','The less you own, the less owns you'], landing:'"It\'s small. But it\'s mine. And that\'s the biggest thing I\'ve had in a while."', status:'idea' },
+  { id:'r31', title:'Furnished NYC Apartment for Under $300', hook:'"I furnished my entire New York apartment for under $300. Here\'s how — and what I wish someone told me."', phase:'Storytelling', pillar:'NYC Life', length:'30-35s', structure:['VO: "Night one was me, a suitcase pillow, and the floor."','Walk through what you bought and where'], value:['Facebook Marketplace for big stuff','Dollar stores for kitchen essentials','One splurge: good bedding — you sleep 8 hours','Don\'t buy everything immediately — live there a week first'], landing:'"Your apartment doesn\'t have to look like Pinterest on day one. It just has to feel like yours."', status:'idea' },
+  { id:'r32', title:'First Night Alone in New Apartment', hook:'"Nobody warns you about the first night alone in a new apartment."', phase:'Storytelling', pillar:'Independence', length:'30-35s', structure:['VO: "It\'s not the loneliness. It\'s the sounds."','Brain was never this quiet — someone else\'s presence always filled the silence'], value:['Silence becomes your favorite part within 2 weeks','Cook something first night — makes it feel like home faster','Don\'t unpack everything Day 1 — live in the mess','Text someone from home — sharing makes it real'], landing:'"The first night is weird. The second is better. By the tenth, you can\'t imagine sharing this silence."', status:'idea' },
+  { id:'r33', title:'₹75 Lakhs Loan to Chase a Dream', hook:'"I took a loan of 75 lakhs. That\'s almost $90,000. To move to a country where I knew nobody. Three years later, I still don\'t know if it was right."', phase:'Storytelling', pillar:'Immigrant', length:'35-40s', structure:['VO: "Nobody sees the math. That number sits in my chest every time I buy groceries."','Real footage: cooking, shopping, studying, staring at screen'], value:['Separate the debt from the decision — regretting doesn\'t reduce the loan','Track spending to feel in control, not to be cheap','Every skill, connection, interview = the ROI. The degree is paper.'], landing:'"75 lakhs bought me a degree. But also a version of myself that didn\'t exist before. I think she was worth it."', status:'idea' },
+  { id:'r34', title:'Things I Wish I Knew Before Moving to America', hook:'"I moved to America three years ago. Here\'s what I wish someone had sat me down and told me."', phase:'Storytelling', pillar:'Immigrant', length:'30-35s', structure:['Tips woven through specific moments'], value:['Loneliness hits Day 45 → Build routine BEFORE you need one','Nobody thinks about you as much as you think → Do the scary thing alone','First friend group ≠ real friend group → Don\'t force friendships from loneliness','You WILL cry in a Target parking lot → Let it happen'], landing:'"Three years later, I still don\'t have it figured out. But I\'m no longer pretending I should."', status:'idea' },
+  { id:'r35', title:'The American Dream Costs More Than Money', hook:'"The American dream cost me ₹75 lakhs, two years of loneliness, one relationship, and my ability to eat Maggi without getting emotional."', phase:'Storytelling', pillar:'Immigrant', length:'35-40s', structure:['VO: "Nobody tells you the actual price. Missing mom\'s birthday on video call..."'], value:['You left because you saw something bigger. That hasn\'t changed.','People who stayed aren\'t ahead — different path. Comparison is a scam.','The loneliness forces you to meet yourself.'], landing:'"The American dream isn\'t a white fence. It\'s the person you become while chasing something you\'re not sure exists."', status:'idea' },
+  { id:'r36', title:'Surviving the Worst Job Market', hook:'"I have a Master\'s in cybersecurity and I\'ve been ghosted by 47 companies. Here\'s what I\'m doing about it."', phase:'Storytelling', pillar:'Career', length:'30-35s', structure:['VO: "First 20 rejections I took personally. By 30, I realized — this market doesn\'t care about your GPA."'], value:['Stop 50 same-resume apps — tailor 10 instead','LinkedIn: comment on hiring managers\' posts','Job comes from a human who remembers you','Track in spreadsheet: company, date, status, follow-up'], landing:'"Consistent and strategic beats talented and random every single time."', status:'idea' },
+  { id:'r37', title:'What Job Searching Actually Looks Like', hook:'"People think job searching means sending resumes. Here\'s what it actually looks like."', phase:'Storytelling', pillar:'Career', length:'30-35s', structure:['8am: Check email like "you\'re hired + million dollars." Never.','9am: Coffee. LinkedIn. Stare like it wronged me.','1pm: Gym. If career isn\'t working, at least shoulders will.','6pm: Dinner alone. Should I have stayed in India?','8pm: Remember why I didn\'t. Open laptop again.'], value:['The structure itself is the tip — job search needs STRUCTURE'], landing:'"Showing up every day when nobody\'s watching is the only strategy that works."', status:'idea' },
+  { id:'r38', title:'I Used to Be Afraid of Eating Alone', hook:'"Six months ago, I couldn\'t sit in a restaurant alone without pretending I was waiting for someone."', phase:'Storytelling', pillar:'Independence', length:'30-35s', structure:['VO: "Phone out. Scrolling nothing. Just so it looked like I was busy."'], value:['Start with coffee shops — socially pre-approved solitude','Bring a book, not phone — phone is shield, book is choice','Window seat not corner — corner = hiding, window = choosing','Nobody is looking at you. Being alone isn\'t a problem to solve.'], landing:'"Last week I ate dinner alone. No phone. No book. Just me and my food. Most peaceful hour of my month."', status:'idea' },
+  { id:'r39', title:'How to Romanticize Your Life (Without Being Delusional)', hook:'"Everyone says \'romanticize your life\' but nobody tells you how when your life is kind of a mess."', phase:'Storytelling', pillar:'Growth', length:'30-35s', structure:['VO: "My life is rejections and instant noodles and a tiny apartment where I know nobody."'], value:['Romanticize your RESPONSE, not the situation','Make one thing a day intentional, not aesthetic','Stop waiting for things to be good enough to enjoy','Document the ugly stuff — THAT is the story'], landing:'"Romanticizing your life isn\'t making it look beautiful. It\'s deciding it\'s worth paying attention to."', status:'idea' },
+  { id:'r40', title:'I Stopped Texting People When Lonely', hook:'"I used to text someone every time I felt lonely. Last month, I stopped."', phase:'Storytelling', pillar:'Independence', length:'30-35s', structure:['VO: "Not because I don\'t need people. Because I was using responses to avoid sitting with myself."'], value:['Loneliness passes — sit with it','First 15 minutes are hardest, then brain adjusts','Journal instead — hear yourself think without audience','Goal: stop needing people to feel okay, not needing them at all'], landing:'"I still text people. But now because I want to — not because I can\'t handle being alone."', status:'idea' },
+  { id:'r41', title:'My Cybersecurity Master\'s — Honest Version', hook:'"I just finished a Master\'s in cybersecurity. Here\'s what the degree actually taught me vs what actually matters."', phase:'Storytelling', pillar:'Career', length:'30-35s', structure:['Degree: frameworks, theory → Real: can you think like an attacker?','Degree: write thesis → Real: explain security to a CEO','Degree: how to study → Real: learn new tool in 48 hours','Degree: credibility → Real: projects, labs, CTFs, late nights'], value:[], landing:'"Worth it. Not for the reasons they tell you. Because of who you become while getting it."', status:'idea' },
+  { id:'r42', title:'Is the American Dream Still Alive?', hook:'"I moved 8,000 miles from home for a dream. Three years later, I\'m not sure the dream is what I thought it was."', phase:'Phase 4', pillar:'Immigrant', length:'30-35s', structure:['Observations from someone who bet everything on it','NOT political — personal, nuanced'], value:['American dream = freedom to rebuild yourself over and over','Opportunity is real. So is loneliness, distance, pressure.','Stop chasing someone else\'s version. Build yours.'], landing:'"I didn\'t find the American dream. But I\'m building my own. Some days, that feels like the same thing."', status:'idea' },
+  { id:'r43', title:'The More You Plan, the Less Life Listens', hook:'"I had a 5-year plan when I came to America. Want to know how much happened? Almost none of it."', phase:'Phase 4', pillar:'Growth', length:'30-35s', structure:['Montage of everything that didn\'t go to plan + what happened instead'], value:['Have a direction, not a map — direction = flexibility, map = anxiety','Replace timelines with systems — "5 apps/week" > "hired by July"','Changing direction isn\'t quitting — it\'s intelligence'], landing:'"I don\'t have a 5-year plan anymore. I have a today plan. And today, I\'m showing up."', status:'idea' },
+  { id:'r44', title:'I\'m Going Through the Biggest Plot Twist', hook:'"Four months ago, I knew exactly where my life was going. Then everything changed at the same time."', phase:'Phase 4', pillar:'Growth', length:'30-35s', structure:['Thesis done. Relationship done. City leaving. Career uncertain.','Universe shuffled the deck'], value:['Pick one thing to stabilize — for you, the gym','Let 1-2 people help','Document it — this chapter will be the one that made you who you are'], landing:'"I\'m not through the plot twist yet. But I\'m starting to think this might be the best chapter."', status:'idea' },
+  { id:'r45', title:'Hi, I\'m 24 and I Live Alone in NYC', hook:'"Hi, I\'m 24. I live alone in NYC. I know exactly 3 people here. One is my landlord."', phase:'Phase 4', pillar:'NYC Life', length:'25-30s', structure:['Re-introduction once settled','Different energy from Day 1 — you\'re HERE now','Slice-of-life: coffee, subway, apartment, walking'], value:[], landing:'"Some days I feel like I\'m winning. Some days surviving. Most days it\'s both."', status:'idea' },
+  { id:'r46', title:'I Romanticize My Life Because the Alternative Is Crying in the Shower', hook:'"I romanticize my life because the alternative is crying in the shower. And I\'ve already done that. It didn\'t help."', phase:'Phase 4', pillar:'Growth', length:'25-30s', structure:['Quick cuts: making everything aesthetic while clearly struggling','Contrast between cinematic shots and reality underneath'], value:['Romanticize your RESPONSE, not situation','One intentional thing per day','Stop waiting for "good enough"','Document the ugly stuff too — that IS the story'], landing:'"Romanticizing your life isn\'t making it look beautiful. It\'s deciding it\'s worth paying attention to."', status:'idea' },
+  { id:'r47', title:'I\'ve Tried Starting a Social Media Account Five Times', hook:'"I have failed at this four times. This is attempt number five. And I\'m posting this before I can talk myself out of it again."', phase:'Phase 4', pillar:'Growth', length:'25-30s', structure:['The pattern: excited → post 2 weeks → check views → panic → delete → disappear','Reframes history of quitting as part of the story'], value:['You quit because you measure the wrong thing — views vs consistency','First 20 posts are practice, not performance','The creators you follow posted to nobody for months'], landing:'"Attempt five. No deleting. Even if 12 people watch — hi, twelve people. Stay."', status:'idea' },
+
+  // TRANSITION/FOOD REELS
+  { id:'r48', title:'What I Eat in a Day — Broke International Student', hook:'"What I eat in a day as an international student who took a ₹75 lakh loan and can\'t afford to waste a single dollar on bad food."', phase:'Storytelling', pillar:'Food', length:'30-35s', structure:['Breakfast: two eggs, toast, and the audacity to believe I\'ll get hired today','Lunch: dal rice. My stomach is still very much Indian.','Dinner: whatever\'s left arranged to look intentional. Survival creativity.'], value:['Eggs = best friend — cheap protein, infinite ways','Batch cook one thing Sunday, eat all week','Aldi & Trader Joe\'s > Whole Foods','No-cook hack: instant noodles + egg + veggies, 5 min, $1'], landing:'"I don\'t eat glamorously. But I eat. And feeding yourself in a new country is its own victory."', status:'idea' },
+  { id:'r49', title:'Indian Comfort Food When NYC Gets Lonely', hook:'"When New York gets too loud and too lonely at the same time, I cook the one thing that makes me feel like I\'m home."', phase:'Storytelling', pillar:'Food', length:'30-35s', structure:['Close-up spices, oil, sizzling','VO: "My mom would disown this version. But 8,000 miles away, in a closet-sized kitchen... close enough."','Eating alone, one plate, quiet kitchen'], value:['Find local Indian grocery — spices 5x cheaper','Basic masala box: turmeric, cumin, coriander, chili, garam masala = 90% of Indian cooking','Rice cooker = best investment','Cooking from home = ritual, not recipe'], landing:'"I don\'t cook to post. I cook to remember. And sometimes that\'s enough."', status:'idea' },
+  { id:'r50', title:'Grocery Shopping Alone in America', hook:'"Grocery shopping alone in America is a psychological experience nobody warned me about."', phase:'Storytelling', pillar:'Food', length:'35-40s', structure:['VO: "In India, grocery shopping was a family event. Here I\'m googling \'what is half and half\' at 10pm."','Everything is bigger. Milk in gallons. Bread is sweet. 47 types of peanut butter.','Figured it out alone — that\'s the whole immigrant story'], value:['Make list BEFORE going — impulse buying destroys budget','Store brands taste same, cost 30-40% less','Frozen vegetables = cheaper + last longer','Go late at night — quieter, no crowds'], landing:'"Learning to feed yourself in a foreign country is one of the most adult things I\'ve ever done."', status:'idea' },
+  { id:'r51', title:'$30 of Groceries: NYC vs India', hook:'"$30 of groceries in New York City. Want to see how far it goes? Spoiler: not far."', phase:'Storytelling', pillar:'Food', length:'30-35s', structure:['₹2500 feeds family of 4 for a week in India. In NYC, 3 days eating alone.','Lay out everything on counter, show receipt'], value:['Plan 3-4 meals around same base ingredients','Buy whole chicken pieces — cheaper per pound','Eggs, beans, lentils = cheapest complete proteins','One treat per grocery run — don\'t punish yourself'], landing:'"This isn\'t a meal plan. It\'s a survival plan. And I\'m getting pretty good at it."', status:'idea' },
+  { id:'r52', title:'Eating Alone in Public for the First Time', hook:'"I sat in a restaurant alone today. No phone. No pretending someone was coming. Just me and my food."', phase:'Storytelling', pillar:'Independence', length:'35-40s', structure:['VO: 3 years in America, never eaten at restaurant alone','Not because couldn\'t afford — because couldn\'t handle the empty chair','Realization: nobody was looking. Only I thought it was weird.'], value:['Start with counter/bar seating','Lunch easier than dinner — everyone eats alone at lunch','Bring a book first. Graduate to nothing.','Order something you actually want — you deserve to enjoy this'], landing:'"The empty chair isn\'t sad. It\'s space. And I\'m learning to fill it with my own presence."', status:'idea' },
+  { id:'r53', title:'Places I Never Visited in 2 Years', hook:'"I lived in this city for two years and I just realized I\'ve never been to most of it."', phase:'Storytelling', pillar:'Reflections', length:'30-35s', structure:['Treated city like a waiting room','Never walked through the park, tried the coffee shop, sat by the lake','This week visiting every place I should have gone to'], value:['Don\'t treat where you live like a waiting room','Visit one new place every week','Places you avoid are usually ones you\'d enjoy most'], landing:'"I have [X] days left. I\'m going to stop waiting for somewhere better and actually be here."', status:'idea' },
+  { id:'r54', title:'A Love Letter to a City I Never Loved', hook:'"I\'m writing a love letter to a city I never loved. Because I think I owe it one."', phase:'Storytelling', pillar:'Reflections', length:'35-40s', structure:['Worcester — 2 years complaining. Too small. Not NYC.','But: where I graduated, learned to cook, went to gym alone, figured out who I am','Didn\'t love you. But you were patient with me.'], value:[], landing:'"I don\'t think I\'ll miss you. But I\'ll remember you as where I started becoming myself. That\'s enough."', status:'idea' },
+  { id:'r55', title:'My Last Week in Massachusetts (Series)', hook:'"7 days left in Massachusetts. Here\'s what I\'m doing with them."', phase:'Storytelling', pillar:'NYC Life', length:'20-25s', structure:['Not a bucket list — a "should have done 2 years ago" list','Day 1-7 mini-series, film each day','Build anticipation: each day closer to the move'], value:['Make a "before I leave" list for any city you\'re leaving','Last week teaches more than first year'], landing:null, status:'idea' },
+  { id:'r56', title:'Packing My Entire Life into [X] Bags', hook:'"I\'m packing my entire life into [X] bags. And it\'s making me question everything I own."', phase:'Storytelling', pillar:'NYC Life', length:'30-35s', structure:['Negotiating: sweater or rice cooker? Rice cooker wins.','Keeping: things that keep me alive, keep me sane, one sentimental thing','Everything else? Gone. Feels lighter.'], value:['"Would I buy this again?" test — if no, let go','Pack by category, not room','First suitcase = survive-3-days bag','Take photos of old place — you\'ll want them later'], landing:'"Everything I own fits in [X] bags. I feel richer than when I had a full apartment."', status:'idea' },
+  { id:'r57', title:'The Drive from MA to NYC', hook:'"4 hours between my old life and my new one. This is what that looks like."', phase:'Storytelling', pillar:'NYC Life', length:'35-40s', structure:['Hour 1: still in old city\'s gravity — did I forget something?','Hour 2: in between — not there, not here. Most honest place in months.','Hour 3: buildings change, skyline gets bigger, heart beats faster.','Hour 4: here. Feels like a movie about someone braver.'], value:['Download offline maps before leaving','Pack snacks for the trip','Important docs in carry-on not checked bag','Emotional crash after move is normal — not regret, just tiredness'], landing:'"4 hours. That\'s all it takes to start a completely new life."', status:'idea' },
+  { id:'r58', title:'Everything I\'m Carrying to Start a New Life', hook:'"Here\'s everything I\'m carrying to start a new life in NYC. The physical stuff AND the invisible stuff."', phase:'Storytelling', pillar:'NYC Life', length:'30-35s', structure:['Physical: 2 suitcases, backpack, laptop, rice cooker, gym shoes, 4 spice containers','Invisible: Master\'s degree, student debt, memory of relationship, fear, and one stubborn belief'], value:[], landing:'"You don\'t need much to start over. A plan (optional), stubbornness (required), willingness to figure it out (mandatory)."', status:'idea' },
+  { id:'r59', title:'My First Morning Alone in NYC', hook:'"My first morning alone in New York City. Here\'s how it actually went."', phase:'Storytelling', pillar:'NYC Life', length:'35-40s', structure:['5:47am — city doesn\'t believe in silence','Coffee in one mug at window — no table yet','Toast for breakfast, 3 job applications, walked outside, got lost, found coffee shop'], value:['First morning: find one coffee shop, one route, one familiar thing','Walk neighborhood before subway — know your block first','First week = survival, not optimization'], landing:'"Day 1 done. It wasn\'t perfect. But I showed up. Sometimes that\'s the whole plan."', status:'idea' },
+  { id:'r60', title:'First Grocery Run in NYC', hook:'"My first grocery run in New York City was a humbling experience."', phase:'Storytelling', pillar:'Food', length:'30-35s', structure:['3 blocks — includes a hill, aggressive taxis, and a man arguing with a pigeon','$43 for what cost $25 in Worcester','Carried 4 bags upstairs — elevator "under maintenance" (doesn\'t exist)'], value:['Scope out 3 grocery options on Day 1','Buy reusable bag — NYC charges for bags','First run: staples only (oil, salt, rice, eggs, bread, butter)','Cook on Day 1 — transforms room into home'], landing:'"Grocery shopping used to be something my mom did. Now it\'s something I do. In a new city. Alone. Not bad at it."', status:'idea' },
+  { id:'r61', title:'First Week in NYC — Things Nobody Tells You', hook:'"Things nobody tells you about your first week living in New York City."', phase:'Storytelling', pillar:'NYC Life', length:'35-40s', structure:['You will get lost. Every day.','Same meal 3 days in a row.','Upstairs neighbor at 2am — tap dancing?','Call home, pretend everything is amazing, hang up, sit in silence.','Day 4: beautiful street, golden light. Oh. This is why people love this city.'], value:['Week 1 kit: portable charger, comfy shoes, offline maps, notebook','Ask people for directions — New Yorkers are actually helpful','Overwhelm fades by Day 5','Find one safe place and go every day'], landing:'"First week isn\'t thriving. It\'s proving to yourself you can survive somewhere new. And you can."', status:'idea' },
+  { id:'r62', title:'What I Actually Spend in a Day in NYC', hook:'"Here\'s what I actually spend in a day in NYC. No sponsored content. No avocado toast. Just math."', phase:'Storytelling', pillar:'NYC Life', length:'35-40s', structure:['Coffee: $0 (made at home, broke not insane)','Subway: $2.90 (walk one way = exercise + cheap)','Lunch: $4-6 (prepped or bodega sandwich)','Random snack: $2 (banana or cookie, depends on emotions)','Dinner: $3-5 (always cooked)','Total: ~$15-20/day = $450-600/month'], value:['Track every dollar for one week','$6 daily coffee = $180/month — make it at home','Bodegas are your friend','Free activities everywhere: parks, museum free days, library, walking'], landing:'"Living in NYC is expensive. Less expensive when you stop pretending to live like people who\'ve been here 10 years."', status:'idea' },
+  { id:'r63', title:'A Random Tuesday Alone in NYC', hook:'"Nobody talks about random Tuesdays. But random Tuesdays are where your life actually happens."', phase:'Storytelling', pillar:'Independence', length:'35-40s', structure:['Full day narration: 7am alarm → 8am LinkedIn sadness → 10am library → 1pm dal rice (day 47) → 4pm aimless walk → 7pm cook → 10pm journal'], value:['Structure unstructured days','Library = free co-working space','Walk without phone for 20 min — boredom becomes clarity','Journal 3 things: what happened, how you felt, what you\'ll do tomorrow'], landing:'"Random Tuesdays. That\'s where the real growth happens. The small, boring, beautiful ones."', status:'idea' },
+  { id:'r64', title:'The Loneliest Part of Living Alone', hook:'"The loneliest part of living alone isn\'t the silence. It\'s having nobody to tell the small stuff to."', phase:'Storytelling', pillar:'Independence', length:'35-40s', structure:['Beautiful sunset — turn to say "look at this" — nobody there','Something funny — laugh alone — silence after is louder than the laugh','Cook something good — nobody to say "try this"','Big loneliness everyone warns about. Small loneliness catches you off guard.'], value:['Start a group chat for small stuff — low pressure, high connection','Call during mundane moments, not just crises','Small loneliness gets smaller — you fill it with your own presence'], landing:'"The small loneliness isn\'t something to fix. It\'s something to sit with. The silence stops feeling empty and starts feeling like space."', status:'idea' },
+  { id:'r65', title:'My Morning Routine in NYC (Realistic)', hook:'"My morning routine in NYC. Before you ask: no, it does not involve a sunrise smoothie."', phase:'Storytelling', pillar:'Independence', length:'30-35s', structure:['5:30am wake up because city doesn\'t do silence','5:45am phone — yes I check email, I\'m an anxious job-seeker','6:15am coffee — 20 minutes of okay','6:45am gym — not motivated, but if not now, I\'ll skip by 10am','8:30am shower, dressed, laptop, LinkedIn, begin'], value:['Do hardest thing before 9am — willpower decreases','Coffee before email — 15 min of peace','Make your bed — 30 seconds — first accomplishment'], landing:'"My morning isn\'t perfect. But it\'s mine. And I show up to it every day."', status:'idea' },
+  { id:'r66', title:'Things I Do to Not Lose My Mind Job Searching', hook:'"Things I actively do to not lose my mind while job searching in New York City."', phase:'Storytelling', pillar:'Career', length:'35-40s', structure:['1: Leave apartment every day — even just to the corner','2: Max 5 quality applications/day — not 50','3: Work out — gym = effort equals results (opposite of job market)','4: Talk to one person a day — any voice that isn\'t inner critic','5: Remember: job search is temporary. Life isn\'t on hold.'], value:['Set "close laptop" time — job search doesn\'t get your evening','Track wins, not just rejections','Job market is bad for everyone — not a reflection of your worth','One callback changes everything — you only need one'], landing:'"I\'m not just surviving the job search. I\'m building a life around it."', status:'idea' },
+];
+
+// ===== STATE =====
+let state = {
+  reels: ALL_REELS.map(r => ({...r})),
+  log: [],
+  calEvents: [],
+  ideas: [],
+  currentMonth: new Date().getMonth(),
+  currentYear: new Date().getFullYear(),
+  activeFilter: 'All',
+};
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('contentCommandCenter');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Merge saved reel statuses onto our master list
+      if (parsed.reels) {
+        parsed.reels.forEach(sr => {
+          const match = state.reels.find(r => r.id === sr.id);
+          if (match) match.status = sr.status;
+        });
+        // Add any custom reels
+        parsed.reels.filter(sr => sr.id.startsWith('custom_')).forEach(sr => {
+          if (!state.reels.find(r => r.id === sr.id)) state.reels.push(sr);
+        });
+      }
+      if (parsed.log) state.log = parsed.log;
+      if (parsed.calEvents) state.calEvents = parsed.calEvents;
+      if (parsed.ideas) state.ideas = parsed.ideas;
+      if (parsed.currentMonth !== undefined) state.currentMonth = parsed.currentMonth;
+      if (parsed.currentYear !== undefined) state.currentYear = parsed.currentYear;
+    }
+  } catch(e) { console.log('No saved state'); }
+}
+
+function saveState() {
+  try {
+    localStorage.setItem('contentCommandCenter', JSON.stringify({
+      reels: state.reels.map(r => ({ id: r.id, status: r.status })),
+      log: state.log,
+      calEvents: state.calEvents,
+      ideas: state.ideas,
+      currentMonth: state.currentMonth,
+      currentYear: state.currentYear,
+    }));
+  } catch(e) { console.log('Save failed'); }
+}
+
+// ===== NAV =====
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+// ===== DASHBOARD =====
+function renderDashboard() {
+  const total = state.reels.length;
+  const filmed = state.reels.filter(r => r.status === 'filmed').length;
+  const edited = state.reels.filter(r => r.status === 'edited').length;
+  const posted = state.reels.filter(r => r.status === 'posted').length;
+  const reshoot = state.reels.filter(r => r.status === 'reshoot').length;
+  const footage = state.log.length;
+
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Total Ideas</div><div class="stat-value coral">${total}</div></div>
+    <div class="stat-card"><div class="stat-label">Filmed</div><div class="stat-value gold">${filmed}</div></div>
+    <div class="stat-card"><div class="stat-label">Edited</div><div class="stat-value" style="color:var(--blue)">${edited}</div></div>
+    <div class="stat-card"><div class="stat-label">Posted</div><div class="stat-value green">${posted}</div></div>
+    <div class="stat-card"><div class="stat-label">Need Reshoot</div><div class="stat-value" style="color:var(--red)">${reshoot}</div></div>
+    <div class="stat-card"><div class="stat-label">Footage Clips</div><div class="stat-value purple">${footage}</div></div>
+  `;
+
+  // Upcoming events
+  const today = new Date(); today.setHours(0,0,0,0);
+  const week = new Date(today); week.setDate(week.getDate()+7);
+  const upcoming = state.calEvents.filter(e => {
+    const d = new Date(e.date); return d >= today && d <= week;
+  }).sort((a,b) => new Date(a.date) - new Date(b.date));
+
+  document.getElementById('upcomingEvents').innerHTML = upcoming.length === 0 ? '<p style="color:var(--text-3);font-size:13px;">No events in the next 7 days. Add some in the Calendar tab.</p>' : upcoming.map(e => `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:6px;display:flex;align-items:center;gap:12px;">
+      <span class="cal-event ${e.type}" style="display:inline-block;">${e.type === 'shoot' ? '📹' : e.type === 'edit' ? '✂️' : e.type === 'upload' ? '📤' : '📋'} ${e.type}</span>
+      <span style="font-size:13px;color:var(--text-2);min-width:80px;">${new Date(e.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>
+      <span style="font-size:13px;">${e.title}</span>
+    </div>
+  `).join('');
+
+  // Recent log
+  const recent = [...state.log].reverse().slice(0,5);
+  document.getElementById('recentActivity').innerHTML = recent.length === 0 ? '<p style="color:var(--text-3);font-size:13px;">No footage logged yet. Start tracking in the Video Log tab.</p>' : recent.map(l => `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:6px;display:flex;align-items:center;gap:12px;">
+      <span style="font-size:12px;color:var(--text-3);min-width:80px;">${l.date || 'No date'}</span>
+      <span style="font-size:13px;flex:1;">${l.desc}</span>
+      <span style="font-size:11px;padding:2px 8px;border-radius:10px;background:${l.status==='usable'?'var(--green-dim)':l.status==='reshoot'?'var(--red-dim)':'var(--gold-dim)'};color:${l.status==='usable'?'var(--green)':l.status==='reshoot'?'var(--red)':'var(--gold)'};">${l.status}</span>
+    </div>
+  `).join('');
+}
+
+// ===== CONTENT LIBRARY =====
+const phases = ['All','Phase 1','Phase 2','Phase 3','Phase 4','Storytelling'];
+const pillars = ['NYC Life','Independence','Career','25 Before 25','Reflections','Immigrant','Growth','Food'];
+
+function renderFilterChips() {
+  document.getElementById('filterChips').innerHTML = phases.map(p =>
+    `<button class="filter-chip ${state.activeFilter===p?'active':''}" onclick="state.activeFilter='${p}';renderLibrary()">${p}</button>`
+  ).join('');
+}
+
+function renderLibrary() {
+  const search = document.getElementById('reelSearch').value.toLowerCase();
+  let reels = state.reels;
+  if (state.activeFilter !== 'All') reels = reels.filter(r => r.phase === state.activeFilter);
+  if (search) reels = reels.filter(r => r.title.toLowerCase().includes(search) || r.hook.toLowerCase().includes(search) || r.pillar.toLowerCase().includes(search));
+
+  renderFilterChips();
+  document.getElementById('reelGrid').innerHTML = reels.map(r => `
+    <div class="reel-card" id="card-${r.id}" onclick="toggleCard('${r.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+        <div style="flex:1;">
+          <div class="reel-title">${r.title}</div>
+          <div class="reel-hook">${r.hook}</div>
+          <div class="reel-meta">
+            <span class="reel-tag tag-phase">${r.phase}</span>
+            <span class="reel-tag tag-pillar">${r.pillar}</span>
+            <span class="reel-tag tag-length">${r.length}</span>
+            <span class="tag-status status-${r.status}">${r.status.toUpperCase()}</span>
+          </div>
+        </div>
+      </div>
+      <div class="reel-details" id="details-${r.id}">
+        ${r.structure && r.structure.length ? `<div class="detail-section"><div class="detail-label">Structure / What to Film</div><ul class="detail-list">${r.structure.map(s=>`<li>${s}</li>`).join('')}</ul></div>` : ''}
+        ${r.value && r.value.length ? `<div class="detail-section"><div class="detail-label">Value / Tips</div><ul class="detail-list">${r.value.map(v=>`<li>${v}</li>`).join('')}</ul></div>` : ''}
+        ${r.landing ? `<div class="detail-section"><div class="detail-label">Landing Line</div><div class="detail-text" style="font-style:italic;border-left:3px solid var(--teal);padding-left:12px;">${r.landing}</div></div>` : ''}
+        <div class="reel-actions">
+          <button class="btn" onclick="event.stopPropagation();changeStatus('${r.id}','idea')">💡 Idea</button>
+          <button class="btn" onclick="event.stopPropagation();changeStatus('${r.id}','filmed')">📷 Filmed</button>
+          <button class="btn" onclick="event.stopPropagation();changeStatus('${r.id}','edited')">✂️ Edited</button>
+          <button class="btn" onclick="event.stopPropagation();changeStatus('${r.id}','posted')">✅ Posted</button>
+          <button class="btn" onclick="event.stopPropagation();changeStatus('${r.id}','reshoot')">🔄 Reshoot</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleCard(id) {
+  const card = document.getElementById('card-'+id);
+  card.classList.toggle('expanded');
+}
+
+function changeStatus(id, status) {
+  const reel = state.reels.find(r => r.id === id);
+  if (reel) { reel.status = status; saveState(); renderLibrary(); renderDashboard(); }
+}
+
+// ===== VIDEO LOG =====
+function renderLog() {
+  const reelOpts = state.reels.map(r => `<option value="${r.id}">${r.title}</option>`).join('');
+  document.getElementById('logBody').innerHTML = state.log.map((l,i) => `
+    <tr>
+      <td>${l.date || ''}</td>
+      <td>${l.desc}</td>
+      <td><span style="font-size:11px;padding:2px 8px;border-radius:10px;background:var(--surface-3);color:var(--text-2);">${l.type}</span></td>
+      <td><span style="font-size:11px;padding:2px 8px;border-radius:10px;background:${l.status==='usable'?'var(--green-dim)':l.status==='reshoot'?'var(--red-dim)':'var(--gold-dim)'};color:${l.status==='usable'?'var(--green)':l.status==='reshoot'?'var(--red)':'var(--gold)'};">${l.status}</span></td>
+      <td style="font-size:12px;">${l.linkedReel ? (state.reels.find(r=>r.id===l.linkedReel)?.title||'—') : '—'}</td>
+      <td style="font-size:12px;max-width:200px;">${l.notes||''}</td>
+      <td><button class="idea-delete" onclick="deleteLog(${i})">&times;</button></td>
+    </tr>
+  `).join('');
+  // Populate linked reel select in modal
+  document.getElementById('logLinkedReel').innerHTML = '<option value="">None</option>' + state.reels.map(r => `<option value="${r.id}">${r.title}</option>`).join('');
+}
+
+function addLogEntry() { document.getElementById('logModal').classList.add('open'); document.getElementById('logDate').value = new Date().toISOString().split('T')[0]; }
+function closeLogModal() { document.getElementById('logModal').classList.remove('open'); }
+function saveLogEntry() {
+  state.log.push({
+    date: document.getElementById('logDate').value,
+    desc: document.getElementById('logDesc').value,
+    type: document.getElementById('logType').value,
+    status: document.getElementById('logStatus').value,
+    linkedReel: document.getElementById('logLinkedReel').value,
+    notes: document.getElementById('logNotes').value,
+  });
+  saveState(); closeLogModal(); renderLog(); renderDashboard();
+  document.getElementById('logDesc').value = '';
+  document.getElementById('logNotes').value = '';
+}
+function deleteLog(i) { state.log.splice(i,1); saveState(); renderLog(); renderDashboard(); }
+
+// ===== CALENDAR =====
+function renderCalendar() {
+  const year = state.currentYear, month = state.currentMonth;
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('calMonth').textContent = `${monthNames[month]} ${year}`;
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const daysInPrev = new Date(year, month, 0).getDate();
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  let html = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => `<div class="cal-day-label">${d}</div>`).join('');
+
+  // Previous month fill
+  for (let i = firstDay-1; i >= 0; i--) {
+    const day = daysInPrev - i;
+    html += `<div class="cal-cell other-month"><div class="cal-date">${day}</div></div>`;
+  }
+
+  // Current month
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const cellDate = new Date(year, month, d);
+    const isToday = cellDate.getTime() === today.getTime();
+    const events = state.calEvents.filter(e => e.date === dateStr);
+
+    html += `<div class="cal-cell ${isToday?'today':''}" onclick="openCalModal('${dateStr}')">
+      <div class="cal-date">${d}</div>
+      ${events.map(e => `<div class="cal-event ${e.type}" title="${e.title}${e.notes ? ': '+e.notes : ''}">${e.type==='shoot'?'📹':e.type==='edit'?'✂️':e.type==='upload'?'📤':'📋'} ${e.title}</div>`).join('')}
+      <div class="cal-add">+ add</div>
+    </div>`;
+  }
+
+  // Next month fill
+  const totalCells = firstDay + daysInMonth;
+  const remaining = (7 - totalCells % 7) % 7;
+  for (let i = 1; i <= remaining; i++) {
+    html += `<div class="cal-cell other-month"><div class="cal-date">${i}</div></div>`;
+  }
+
+  document.getElementById('calGrid').innerHTML = html;
+}
+
+function changeMonth(dir) {
+  state.currentMonth += dir;
+  if (state.currentMonth > 11) { state.currentMonth = 0; state.currentYear++; }
+  if (state.currentMonth < 0) { state.currentMonth = 11; state.currentYear--; }
+  saveState(); renderCalendar();
+}
+
+function openCalModal(dateStr) {
+  document.getElementById('calModal').classList.add('open');
+  if (dateStr) document.getElementById('calEventDate').value = dateStr;
+  else document.getElementById('calEventDate').value = new Date().toISOString().split('T')[0];
+}
+function closeCalModal() { document.getElementById('calModal').classList.remove('open'); }
+function saveCalEvent() {
+  const title = document.getElementById('calEventTitle').value;
+  if (!title) return;
+  state.calEvents.push({
+    date: document.getElementById('calEventDate').value,
+    title,
+    type: document.getElementById('calEventType').value,
+    notes: document.getElementById('calEventNotes').value,
+  });
+  saveState(); closeCalModal(); renderCalendar(); renderDashboard();
+  document.getElementById('calEventTitle').value = '';
+  document.getElementById('calEventNotes').value = '';
+}
+
+// ===== IDEA BANK =====
+function renderIdeas() {
+  const catColors = { 'NYC Life':['var(--coral-dim)','var(--coral)'], 'Independence':['var(--teal-dim)','var(--teal)'], 'Career':['var(--blue-dim)','var(--blue)'], 'Food':['var(--gold-dim)','var(--gold)'], 'Immigrant':['var(--purple-dim)','var(--purple)'], 'Growth':['var(--green-dim)','var(--green)'], 'Funny':['var(--pink-dim)','var(--pink)'], 'Other':['var(--surface-3)','var(--text-3)'] };
+
+  document.getElementById('ideaList').innerHTML = state.ideas.length === 0 ? '<p style="color:var(--text-3);font-size:13px;padding:20px 0;">No ideas saved yet. Type one above and hit Enter or click Add.</p>' : state.ideas.map((idea,i) => {
+    const [bg,fg] = catColors[idea.category] || catColors['Other'];
+    return `<div class="idea-card">
+      <div style="flex:1;">
+        <div class="idea-text">${idea.text}</div>
+        <span class="idea-pill" style="background:${bg};color:${fg};">${idea.category}</span>
+      </div>
+      <div class="idea-actions">
+        <button class="idea-promote" onclick="promoteIdea(${i})" title="Promote to reel idea">↗ Promote</button>
+        <button class="idea-delete" onclick="deleteIdea(${i})">&times;</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addIdea() {
+  const text = document.getElementById('newIdeaInput').value.trim();
+  if (!text) return;
+  const category = document.getElementById('newIdeaCategory').value;
+  state.ideas.push({ text, category, created: new Date().toISOString() });
+  saveState(); renderIdeas();
+  document.getElementById('newIdeaInput').value = '';
+}
+
+function deleteIdea(i) { state.ideas.splice(i,1); saveState(); renderIdeas(); }
+
+function promoteIdea(i) {
+  const idea = state.ideas[i];
+  const newReel = {
+    id: 'custom_' + Date.now(),
+    title: idea.text.substring(0,60),
+    hook: '"' + idea.text + '"',
+    phase: 'Phase 4',
+    pillar: idea.category === 'Funny' ? 'Growth' : idea.category,
+    length: '20-30s',
+    structure: [],
+    value: [],
+    landing: null,
+    status: 'idea',
+  };
+  state.reels.push(newReel);
+  state.ideas.splice(i,1);
+  saveState(); renderIdeas(); renderLibrary(); renderDashboard();
+}
+
+// ===== EXPORT/IMPORT =====
+function exportData() {
+  const data = JSON.stringify({ reels: state.reels.map(r => ({id:r.id,status:r.status})), log: state.log, calEvents: state.calEvents, ideas: state.ideas }, null, 2);
+  const blob = new Blob([data], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'content_command_center_backup.json';
+  a.click();
+}
+
+function importDataPrompt() { document.getElementById('importFile').click(); }
+function importData(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.reels) data.reels.forEach(sr => { const m = state.reels.find(r=>r.id===sr.id); if(m) m.status=sr.status; });
+      if (data.log) state.log = data.log;
+      if (data.calEvents) state.calEvents = data.calEvents;
+      if (data.ideas) state.ideas = data.ideas;
+      saveState(); renderAll();
+      alert('Data imported successfully!');
+    } catch(err) { alert('Invalid file.'); }
+  };
+  reader.readAsText(file);
+}
+
+// ===== INIT =====
+function renderAll() { renderDashboard(); renderLibrary(); renderLog(); renderCalendar(); renderIdeas(); }
+loadState();
+renderAll();
+</script>
+</body>
+</html>
